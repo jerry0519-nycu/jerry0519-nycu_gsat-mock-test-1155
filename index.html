@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>115學測英文模擬試題(五)</title>
+  <style>
+    /* === 全局設定 === */
+    body { 
+      font-family: "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif; 
+      margin: 0; 
+      padding-top: 60px; /* 預留一點空間給收合後的按鈕 */
+      line-height: 1.6; 
+      background-color: #f4f4f4; 
+      color: #333; 
+    }
+    h1, h2, h3 { color: #2c3e50; }
+    h1 { text-align: center; margin-bottom: 30px; }
+    h2 { margin-top: 0; border-bottom: 2px solid #2c3e50; padding-bottom: 10px; margin-bottom: 20px;}
+    
+    /* =========================================
+       1. 置頂計分板 (Score Dashboard)
+       ========================================= */
+    #score-dashboard {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: #2c3e50;
+      color: white;
+      z-index: 1000;
+      padding: 10px 20px 15px 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      transition: transform 0.3s ease-in-out;
+    }
+    
+    #score-dashboard.collapsed {
+      transform: translateY(-100%);
+    }
+
+    .dashboard-row {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      font-size: 0.9rem;
+    }
+    .dashboard-item {
+      background: rgba(255,255,255,0.1);
+      padding: 4px 10px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+    .dashboard-total {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #fbbf24;
+      background: rgba(255,255,255,0.2);
+    }
+    .score-val { font-weight: bold; color: #a5f3fc; margin-left: 5px; }
+
+    /* 計分板按鈕 */
+    #dashboard-toggle-btn {
+      position: absolute;
+      bottom: -32px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #2c3e50;
+      color: #fbbf24;
+      border: none;
+      border-radius: 0 0 10px 10px;
+      padding: 5px 20px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 4px 4px rgba(0,0,0,0.15);
+      z-index: 1001;
+      transition: background-color 0.2s;
+    }
+    #dashboard-toggle-btn:hover { background-color: #34495e; }
+
+    /* =========================================
+       2. 計時器面板 (Timer Bar)
+       ========================================= */
+    #timer-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: #fff;
+      border-bottom: 1px solid #ddd;
+      z-index: 900;
+      padding: 10px 20px 15px 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: center;
+      justify-content: space-between;
+      transition: transform 0.3s ease-in-out;
+      box-sizing: border-box;
+    }
+
+    #timer-bar.collapsed {
+      transform: translateY(-100%);
+    }
+
+    .timer-left-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .timer-right-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    #timer { 
+      font-weight: bold; 
+      color: #d35400; 
+      font-size: 1.4rem;
+      min-width: 80px;
+      text-align: right;
+    }
+
+    /* 計時器按鈕 */
+    #timer-toggle-btn {
+      position: absolute;
+      bottom: -32px;
+      right: 40px;
+      background-color: #fff;
+      color: #2563eb;
+      border: 1px solid #ddd;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      padding: 5px 15px;
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 4px 4px rgba(0,0,0,0.05);
+      z-index: 901;
+      transition: background-color 0.2s;
+    }
+    #timer-toggle-btn:hover { background-color: #f0f9ff; }
+
+
+    /* === 試卷區塊樣式 === */
+    .container-body { margin: 20px; margin-top: 40px; }
+
+    .quiz-section { background: #fff; margin-top: 30px; padding: 30px; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .question { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+    .question:last-child { border-bottom: none; }
+    .qtext { font-weight: bold; margin-bottom: 8px; font-size: 1.05rem; }
+    
+    .cloze-passage, .passage { background: #f8fbfd; padding: 20px 25px; border-left: 5px solid #2980b9; margin-bottom: 25px; line-height: 1.9; text-align: justify; border-radius: 4px; font-size: 1.05rem; }
+    .group-title { font-weight: bold; color: #e67e22; margin-top: 30px; margin-bottom: 15px; font-size: 1.2em; border-bottom: 2px solid #e67e22; display: inline-block; }
+
+    label { display: block; margin-left: 15px; margin-top: 5px; cursor: pointer; transition: background 0.2s; padding: 4px 8px; border-radius: 4px; }
+    label:hover { background-color: #f0f0f0; }
+    select { margin-left: 5px; padding: 5px; border-radius: 4px; border: 1px solid #ccc; font-size: 1rem;}
+    
+    button { padding: 10px 18px; font-size: 15px; cursor: pointer; border-radius: 6px; border: none; transition: all 0.3s; font-weight: bold; }
+    .primary { background: #2563eb; color: white; }
+    .primary:hover { background: #1d4ed8; }
+    .secondary { background: #e5e7eb; color: #111; }
+    .secondary:hover { background: #d1d5db; }
+    .danger { background: #dc2626; color: white; }
+    .danger:hover { background: #b91c1c; }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .correct-answer { display: none; color: #16a34a; font-weight: bold; margin-left: 10px; background: #e8f5e9; padding: 2px 5px; border-radius: 3px;}
+    .wrong { color: #dc2626; }
+    .correct { color: #16a34a; font-weight: bold; }
+    #results { margin-top: 20px; padding: 20px; border: 2px solid #ddd; border-radius: 10px; background: #fff;}
+    .locked-banner { display: none; padding: 15px; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: bold; font-size: 1.2rem; }
+
+    /* 作文與翻譯樣式 */
+    .essay-container { display: flex; flex-direction: column; gap: 10px; }
+    textarea#essayInput { width: 100%; height: 400px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; font-family: 'Times New Roman', serif; font-size: 18px; line-height: 1.6; resize: vertical; box-sizing: border-box; }
+    .word-count { text-align: right; font-size: 0.9rem; color: #666; }
+    .ai-grading-result { margin-top: 15px; padding: 20px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; display: none; }
+    .score-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 15px; }
+    .score-item { background: white; padding: 10px; border-radius: 6px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .score-label { font-size: 0.85rem; color: #555; display: block; }
+    .score-value { font-size: 1.5rem; font-weight: bold; color: #16a34a; }
+    .total-score { font-size: 1.3rem; font-weight: bold; border-top: 2px solid #eee; padding-top: 15px; margin-top: 10px; text-align: center; color: #2c3e50;}
+
+    /* 雙色訂正 */
+    details.correction-dropdown { background-color: #fff; border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    details.correction-dropdown summary { padding: 15px 20px; background-color: #f3f4f6; font-weight: bold; color: #374151; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+    details.correction-dropdown summary::after { content: '▼'; font-size: 0.8em; transition: 0.2s; }
+    details.correction-dropdown[open] summary::after { transform: rotate(180deg); }
+    .essay-correction-content { padding: 25px; line-height: 2.6; font-family: "Times New Roman", "Noto Sans TC", serif; font-size: 1.2rem; color: #1f2937; }
+    .mark-error { color: #dc2626; text-decoration: underline wavy #dc2626; text-decoration-thickness: 1.5px; font-weight: bold; cursor: help; position: relative; margin: 0 3px; background-color: rgba(254, 226, 226, 0.5); padding: 0 2px; border-radius: 3px; }
+    .mark-opt { color: #2563eb; text-decoration: underline dotted #2563eb; text-decoration-thickness: 2px; font-weight: bold; cursor: help; position: relative; margin: 0 3px; background-color: rgba(219, 234, 254, 0.5); padding: 0 2px; border-radius: 3px; }
+    .mark-error::before, .mark-opt::before { content: attr(data-suggestion); position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); padding: 6px 12px; border-radius: 6px; font-size: 0.95rem; font-family: Arial, sans-serif; white-space: pre; opacity: 0; pointer-events: none; transition: opacity 0.2s, bottom 0.2s; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.15); font-weight: normal; min-width: 120px; text-align: center; }
+    .mark-error::before { background-color: #991b1b; color: white; border: 1px solid #7f1d1d; }
+    .mark-opt::before { background-color: #1e40af; color: white; border: 1px solid #1e3a8a; }
+    .mark-error::after, .mark-opt::after { content: ''; position: absolute; bottom: 120%; left: 50%; margin-left: -6px; border-width: 6px; border-style: solid; opacity: 0; transition: opacity 0.2s; }
+    .mark-error::after { border-color: #991b1b transparent transparent transparent; }
+    .mark-opt::after { border-color: #1e40af transparent transparent transparent; }
+    .mark-error:hover::before, .mark-error:hover::after, .mark-opt:hover::before, .mark-opt:hover::after { opacity: 1; bottom: 125%; }
+
+    .feedback-box { margin-top: 20px; padding: 20px; background: #fff; border-left: 5px solid #2563eb; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .feedback-title { font-weight: bold; color: #1e40af; margin-bottom: 10px; display: block; font-size: 1.15rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+    .feedback-content { white-space: pre-wrap; color: #374151; line-height: 1.8; font-size: 1.05rem; text-align: justify; }
+    .legend-box { font-size: 0.9rem; margin-bottom: 0; padding: 5px 10px; background: #fff; border:1px solid #ddd; border-radius: 4px; display: inline-flex; align-items: center; }
+    .legend-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; }
+    .ai-loading-anim { display: inline-block; animation: blink 1.5s infinite; }
+    @keyframes blink { 0% { opacity: 0.2; } 50% { opacity: 1; } 100% { opacity: 0.2; } }
+
+    /* 混合題與翻譯 */
+    .mixed-input { border: none; border-bottom: 2px solid #333; background: #fdfdfd; padding: 2px 5px; font-size: 1rem; width: 80%; outline: none; color: #166534; font-weight: bold; }
+    .mixed-input:focus { border-bottom-color: #2563eb; background: #eef2ff; }
+    .q50-input { width: 100%; padding: 8px; border: 1px solid #000; border-radius: 4px; font-size: 1rem; }
+    textarea.trans-input { width: 100%; height: 80px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; font-family: 'Times New Roman', serif; resize: vertical; margin-bottom: 10px; }
+    .translation-result-box { margin-top: 15px; padding: 15px; background: #fafafa; border: 1px solid #eee; border-radius: 8px; }
+    .trans-feedback { color: #666; font-size: 0.95rem; margin-top: 5px; font-style: italic; }
+  </style>
+</head>
+<body>
+
+  <div id="score-dashboard" class="collapsed">
+    <div style="text-align: center; font-size: 1.1rem; margin-bottom: 5px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 5px;">
+      即時成績看板 (Real-time Scoreboard)
+    </div>
+    <div class="dashboard-row">
+      <div class="dashboard-item">詞彙: <span id="dash-vocab" class="score-val">0</span></div>
+      <div class="dashboard-item">綜合: <span id="dash-cloze" class="score-val">0</span></div>
+      <div class="dashboard-item">文意: <span id="dash-context" class="score-val">0</span></div>
+      <div class="dashboard-item">篇章: <span id="dash-struct" class="score-val">0</span></div>
+      <div class="dashboard-item">閱讀: <span id="dash-reading" class="score-val">0</span></div>
+      <div class="dashboard-item">混合: <span id="dash-mixed" class="score-val">0</span></div>
+    </div>
+    <div class="dashboard-row">
+      <div class="dashboard-item">中譯英: <span id="dash-trans" class="score-val">--</span></div>
+      <div class="dashboard-item">作文: <span id="dash-essay" class="score-val">--</span></div>
+      <div class="dashboard-item dashboard-total">目前總分: <span id="dash-total" class="score-val">0</span> / 100</div>
+    </div>
+    <button id="dashboard-toggle-btn" type="button">⬇ 顯示成績</button>
+  </div>
+
+  <div id="timer-bar" class="collapsed"> <div class="timer-left-group">
+      <label for="countdownTime" style="margin:0; font-weight:bold;">時間設定：</label>
+      <select id="countdownTime">
+        <option value="30">30 分鐘</option>
+        <option value="45">45 分鐘</option>
+        <option value="60" selected>60 分鐘</option>
+        <option value="75">75 分鐘</option>
+        <option value="90">90 分鐘</option>
+        <option value="105">100 分鐘</option>
+      </select>
+      <button class="primary" id="startBtn" type="button">開始</button>
+      <button class="secondary" id="pauseBtn" type="button" disabled>暫停</button>
+      <button class="secondary" id="resumeBtn" type="button" disabled>繼續</button>
+      <button class="danger" id="resetTimerBtn" type="button" disabled>重設</button>
+    </div>
+
+    <div class="timer-right-group">
+      <span style="font-size:0.9rem; color:#666;">剩餘：</span>
+      <span id="timer">尚未開始</span>
+    </div>
+
+    <button id="timer-toggle-btn" type="button">⏱ 顯示計時器</button>
+  </div>
+
+  <div class="container-body">
+    <h1>115學測英文模擬試題(五)</h1>
+    
+    <div id="lockedBanner" class="locked-banner">⚠️ 時間到！所有作答欄位已鎖定。</div>
+
+    <form id="examForm">
+      <div class="quiz-section">
+        <h2>第一大題：詞彙測驗（1–10 題，每題1分）</h2>
+        
+        <div class="question">
+          <div class="qtext">1. Mutual trust and respect are the ______ foundations of any healthy and long-lasting relationship.</div>
+          <div class="options">
+            <label><input type="radio" name="q1" value="A"> A. conservative</label>
+            <label><input type="radio" name="q1" value="B"> B. aggressive</label>
+            <label><input type="radio" name="q1" value="C"> C. fundamental</label>
+            <label><input type="radio" name="q1" value="D"> D. representative</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">2. The government has decided to lift the travel ______ on the border now that the pandemic is officially under control.</div>
+          <div class="options">
+            <label><input type="radio" name="q2" value="A"> A. landscapes</label>
+            <label><input type="radio" name="q2" value="B"> B. signatures</label>
+            <label><input type="radio" name="q2" value="C"> C. formations</label>
+            <label><input type="radio" name="q2" value="D"> D. restrictions</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">3. It became ______ to everyone in the room that the manager was angry, as he slammed the door and refused to speak.</div>
+          <div class="options">
+            <label><input type="radio" name="q3" value="A"> A. identical</label>
+            <label><input type="radio" name="q3" value="B"> B. apparent</label>
+            <label><input type="radio" name="q3" value="C"> C. generous</label>
+            <label><input type="radio" name="q3" value="D"> D. dynamic</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">4. Before signing the contract, you should ______ every detail carefully to ensure there are no hidden fees or unfair terms.</div>
+          <div class="options">
+            <label><input type="radio" name="q4" value="A"> A. examine</label>
+            <label><input type="radio" name="q4" value="B"> B. pretend</label>
+            <label><input type="radio" name="q4" value="C"> C. organize</label>
+            <label><input type="radio" name="q4" value="D"> D. struggle</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">5. The athlete's ______ goal is to win a gold medal at the Olympics, and he trains six hours a day to achieve it.</div>
+          <div class="options">
+            <label><input type="radio" name="q5" value="A"> A. domestic</label>
+            <label><input type="radio" name="q5" value="B"> B. moderate</label>
+            <label><input type="radio" name="q5" value="C"> C. ultimate</label>
+            <label><input type="radio" name="q5" value="D"> D. academic</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">6. The instructions given by the teacher were so ______ that half of the students misunderstood the assignment and did it wrong.</div>
+          <div class="options">
+            <label><input type="radio" name="q6" value="A"> A. mischievous</label>
+            <label><input type="radio" name="q6" value="B"> B. vulnerable</label>
+            <label><input type="radio" name="q6" value="C"> C. infectious</label>
+            <label><input type="radio" name="q6" value="D"> D. ambiguous</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">7. In many countries, wearing seat belts in cars is ______ by law, and failure to do so can result in a fine.</div>
+          <div class="options">
+            <label><input type="radio" name="q7" value="A"> A. harmonious</label>
+            <label><input type="radio" name="q7" value="B"> B. compulsory</label>
+            <label><input type="radio" name="q7" value="C"> C. prosperous</label>
+            <label><input type="radio" name="q7" value="D"> D. unanimous</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">8. When the two students started fighting in the hallway, a teacher had to ______ immediately to stop them from hurting each other.</div>
+          <div class="options">
+            <label><input type="radio" name="q8" value="A"> A. intervene</label>
+            <label><input type="radio" name="q8" value="B"> B. evaluate</label>
+            <label><input type="radio" name="q8" value="C"> C. circulate</label>
+            <label><input type="radio" name="q8" value="D"> D. penetrate</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">9. The scientist proposed a ______ approach to solving the energy crisis, using a method that had never been tried before.</div>
+          <div class="options">
+            <label><input type="radio" name="q9" value="A"> A. poetic</label>
+            <label><input type="radio" name="q9" value="B"> B. vacant</label>
+            <label><input type="radio" name="q9" value="C"> C. fictional</label>
+            <label><input type="radio" name="q9" value="D"> D. novel</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">10. Throughout his life, Nelson Mandela continued to ______ the cause of human rights and equality, fighting against injustice until the very end.</div>
+          <div class="options">
+            <label><input type="radio" name="q10" value="A"> A. tunnel</label>
+            <label><input type="radio" name="q10" value="B"> B. champion</label>
+            <label><input type="radio" name="q10" value="C"> C. pocket</label>
+            <label><input type="radio" name="q10" value="D"> D. blanket</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-section">
+        <h2>第二大題：綜合測驗（11–20 題，每題1分）</h2>
+        
+        <div class="group-title">題組 A（11–15 題）</div>
+        <div class="passage">
+          <p>In the rapidly evolving age of technology, convenience is supposedly just a click away, yet maintaining consistent productivity seems harder than ever before. We frequently find ourselves mindlessly scrolling through social media feeds or watching short videos when we should be focusing on important work, a self-defeating behavior widely known as (11) ______. Psychologists suggest that this phenomenon is not merely about being lazy or poor time management; rather, it is primarily an emotional coping mechanism. When faced with a difficult, boring, or stressful task, our brains seek immediate mood repair to escape the negative feelings, causing us to (12) ______ the temptation of short-term entertainment instead of pursuing our long-term goals.</p>
+          <p>The specific design of modern electronic devices and applications exacerbates this issue significantly. (13) ______ we stronger self-discipline, we might theoretically be able to resist the constant ping of notifications and the allure of infinite content, but the addictive nature of these algorithms makes resistance nearly impossible for the average person. This state of constant digital overstimulation severely fragments our attention span. Furthermore, the sheer volume of micro-decisions we make daily—from answering emails to ignoring ads—rapidly depletes our mental energy reserves. It is this invisible mental fatigue that (14) ______ day by day, eventually leading to a state of total burnout. By the time evening arrives, we are often too mentally drained to move or do anything meaningful, (15) ______ us feeling guilty and anxious about our lack of activity, which only restarts the cycle the next day.</p>
+        </div>
+
+        <div class="question">
+          <div class="qtext">11.</div>
+          <div class="options">
+            <label><input type="radio" name="q11" value="A"> A. transformation</label>
+            <label><input type="radio" name="q11" value="B"> B. contradiction</label>
+            <label><input type="radio" name="q11" value="C"> C. procrastination</label>
+            <label><input type="radio" name="q11" value="D"> D. negotiation</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">12.</div>
+          <div class="options">
+            <label><input type="radio" name="q12" value="A"> A. look up to</label>
+            <label><input type="radio" name="q12" value="B"> B. come down with</label>
+            <label><input type="radio" name="q12" value="C"> C. cut down on</label>
+            <label><input type="radio" name="q12" value="D"> D. give in to</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">13.</div>
+          <div class="options">
+            <label><input type="radio" name="q13" value="A"> A. Had</label>
+            <label><input type="radio" name="q13" value="B"> B. Were</label>
+            <label><input type="radio" name="q13" value="C"> C. Should</label>
+            <label><input type="radio" name="q13" value="D"> D. Did</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">14.</div>
+          <div class="options">
+            <label><input type="radio" name="q14" value="A"> A. stimulates</label>
+            <label><input type="radio" name="q14" value="B"> B. circulates</label>
+            <label><input type="radio" name="q14" value="C"> C. manipulates</label>
+            <label><input type="radio" name="q14" value="D"> D. accumulates</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">15.</div>
+          <div class="options">
+            <label><input type="radio" name="q15" value="A"> A. left</label>
+            <label><input type="radio" name="q15" value="B"> B. leaving</label>
+            <label><input type="radio" name="q15" value="C"> C. leaves</label>
+            <label><input type="radio" name="q15" value="D"> D. to leave</label>
+          </div>
+        </div>
+
+        <div class="group-title">題組 B（16–20 題）</div>
+        <div class="passage">
+          <p>For true car enthusiasts around the world, the debate between manual and automatic transmissions is timeless and often heated. Manual cars, which require the driver to physically operate a clutch pedal and a gear stick, offer a raw sense of total control that many purists find (16) ______. Being able to choose exactly when to upshift for speed or downshift for power allows for a much more engaging and physical connection between the driver and the machine. However, for the average urban commuter who is constantly stuck in heavy, stop-and-go traffic, the constant limb movements required to change gears can be incredibly exhausting and impractical.</p>
+          <p>This practical inconvenience is the main reason why automatic cars have completely taken over the global market. (17) ______ do they significantly reduce physical fatigue during long drives, but they also allow drivers to focus more of their attention on the complex road conditions around them. Moreover, modern engineering has successfully closed the performance gap that once existed. While early automatic gearboxes were slow, heavy, and clunky, today's advanced dual-clutch systems can shift gears with incredible (18) ______, changing speeds in milliseconds—often much faster than any human hand ever could. Despite the greatly improved (19) ______ efficiency and speed of these new systems, driving purists still argue that automatic cars lack "soul" and remove the skill from driving. Ultimately, the choice depends entirely on the driver's lifestyle and whether they view a car as a simple tool for transportation or a toy (20) ______ provides thrill and excitement on the open road.</p>
+        </div>
+
+        <div class="question">
+          <div class="qtext">16.</div>
+          <div class="options">
+            <label><input type="radio" name="q16" value="A"> A. ambiguous</label>
+            <label><input type="radio" name="q16" value="B"> B. artificial</label>
+            <label><input type="radio" name="q16" value="C"> C. indispensable</label>
+            <label><input type="radio" name="q16" value="D"> D. confidential</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">17.</div>
+          <div class="options">
+            <label><input type="radio" name="q17" value="A"> A. Not only</label>
+            <label><input type="radio" name="q17" value="B"> B. No longer</label>
+            <label><input type="radio" name="q17" value="C"> C. By no means</label>
+            <label><input type="radio" name="q17" value="D"> D. In no way</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">18.</div>
+          <div class="options">
+            <label><input type="radio" name="q18" value="A"> A. collision</label>
+            <label><input type="radio" name="q18" value="B"> B. precision</label>
+            <label><input type="radio" name="q18" value="C"> C. dimension</label>
+            <label><input type="radio" name="q18" value="D"> D. invasion</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">19.</div>
+          <div class="options">
+            <label><input type="radio" name="q19" value="A"> A. mechanism</label>
+            <label><input type="radio" name="q19" value="B"> B. mechanic</label>
+            <label><input type="radio" name="q19" value="C"> C. mechanical</label>
+            <label><input type="radio" name="q19" value="D"> D. mechanically</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">20.</div>
+          <div class="options">
+            <label><input type="radio" name="q20" value="A"> A. what</label>
+            <label><input type="radio" name="q20" value="B"> B. who</label>
+            <label><input type="radio" name="q20" value="C"> C. where</label>
+            <label><input type="radio" name="q20" value="D"> D. which</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-section">
+        <h2>第三大題：文意選填（21–30 題，每題1分）</h2>
+        <div class="passage">
+          <p>In recent years, the lawless border regions of Southeast Asia, particularly along the Mekong River in Myanmar and Cambodia, have become a major international problem. What originally started as unregulated special economic zones for casinos and tourism has (21) _____ into a massive, sophisticated network of organized crime. Following the COVID-19 pandemic, border closures caused criminal syndicates to see their traditional gambling revenues evaporate. Desperate to maintain their income, they quickly pivoted their operations to the more (22) _____ business of telecommunications fraud to make quick cash from victims worldwide.</p>
+          
+          <p>The workforce powering these scam compounds is largely composed of trafficked individuals. Educated, tech-savvy job seekers from various Asian countries are (23) _____ by slick online advertisements on social media platforms promising high pay, flight tickets, and easy office work. However, the reality upon arrival is a nightmare. Once they reach the compounds, their passports and mobile phones are immediately (24) _____ by the gang managers, ensuring they cannot leave or contact their families for help. Detained in high-security buildings surrounded by barbed wire and armed guards, they effectively become (25) _____. Under the constant threat of physical abuse, electric shocks, or starvation, they are forced to (26) _____ innocent strangers online by building fake romantic relationships or pitching fraudulent investment schemes.</p>
+          
+          <p>Putting an end to this transnational crime wave has proven to be incredibly difficult. One major obstacle is the (27) _____ location of these centers, which are often situated deep in the jungle or in autonomous territories controlled by local warlords rather than the central government. The sheer (28) _____ of the operation is also overwhelming, involving hundreds of thousands of workers and billions of dollars in laundered funds. While international police forces and non-governmental organizations try to (29) _____ the issue through intelligence sharing, they face significant diplomatic hurdles. They often lack the specific legal (30) _____ to conduct raids within these sovereign territories to catch the criminals and liberate the victims.</p>
+        </div>
+        
+        <div class="passage">
+          <p><strong>選項：</strong></p>
+          <p style="line-height: 2;">
+            (A) scale　(B) prisoners　(C) transformed　(D) take advantage of　(E) isolated<br>
+            (F) authority　(G) profitable　(H) tackle　(I) collected　(J) attracted
+          </p>
+
+          <div class="question-row" style="display: flex; gap: 20px; margin-bottom: 15px; flex-wrap: wrap;">
+            <div class="question"><div class="qtext">21.</div><select name="q21"><option value="">--</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option><option value="H">H</option><option value="I">I</option><option value="J">J</option></select></div>
+            <div class="question"><div class="qtext">22.</div><select name="q22"><option value="">--</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option><option value="H">H</option><option value="I">I</option><option value="J">J</option></select></div>
+            <div class="question"><div class="qtext">23.</div><select name="q23"><option value="">--</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option><option value="H">H</option><option value="I">I</option><option value="J">J</option></select></div>
+            <div class="question"><div class="qtext">24.</div><select name="q24"><option value="">--</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option><option value="H">H</option><option value="I">I</option><option value="J">J</option></select></div>
+            <div class="question"><div class="qtext">25.</div><select name="q25"><option value="">--</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option><option value="H">H</option><option value="I">I</option><option value="J">J</option></select></div>
+          </div>
+          <div class="question-row" style="display: flex; gap: 20px; margin-bottom: 10px; flex-wrap: wrap;">
+            <div class="question"><div class="qtext">26.</div><select name="q26"><option value="">--</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option><option value="H">H</option><option value="I">I</option><option value="J">J</option></select></div>
+            <div class="question"><div class="qtext">27.</div><select name="q27"><option value="">--</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option><option value="H">H</option><option value="I">I</option><option value="J">J</option></select></div>
+            <div class="question"><div class="qtext">28.</div><select name="q28"><option value="">--</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option><option value="H">H</option><option value="I">I</option><option value="J">J</option></select></div>
+            <div class="question"><div class="qtext">29.</div><select name="q29"><option value="">--</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option><option value="H">H</option><option value="I">I</option><option value="J">J</option></select></div>
+            <div class="question"><div class="qtext">30.</div><select name="q30"><option value="">--</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option><option value="G">G</option><option value="H">H</option><option value="I">I</option><option value="J">J</option></select></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-section">
+        <h2>第四大題：篇章結構（31–34 題，每題2分）</h2>
+        <div class="passage">
+          <p>When walking through the streets of Amsterdam or Copenhagen, one fact becomes immediately obvious: the locals are incredibly tall. The Netherlands consistently ranks as the nation with the tallest people on Earth, with Scandinavian countries following close behind. However, this biological dominance was not always the case. In the mid-19th century, historical military records show that Dutch men were actually among the shortest in Europe, averaging only about 165 centimeters. 31_____ In a span of just 150 years, the average height has surged by over 20 centimeters, a rate of growth that puzzles scientists and historians alike.</p>
+          
+          <p>Researchers believe that this rapid transformation is largely driven by environmental factors, particularly nutrition and social equality. 32_____ The Dutch and Nordic diets are heavily based on milk and cheese, providing the essential building blocks for bone growth during childhood. Furthermore, these countries boast some of the world's best healthcare systems and lowest levels of income inequality. 33_____ Unlike in nations where wealth is concentrated in the hands of a few, the widespread prosperity in Northern Europe means that the poorest child still has access to the same high-quality food and medical care as the richest, allowing the entire population to grow without hindrance.</p>
+          
+          <p>However, excellent environment alone cannot fully explain such a drastic difference; evolution also plays a crucial role. 34_____ Data suggests that in the Netherlands, taller men have historically had more surviving children than shorter men, and these children were more likely to survive into adulthood to pass on their "tall genes." This combination of natural selection and ideal living conditions has created a perfect storm for vertical growth, turning these nations into the giants of the modern world.</p>
+        </div>
+        
+        <div class="passage">
+          <p><strong>選項：</strong></p>
+          <p>(A) This equitable distribution of wealth ensures that almost every child has the resources to reach their maximum genetic potential.</p>
+          <p>(B) Recent studies indicate that natural selection has been actively favoring taller individuals in these specific regions.</p>
+          <p>(C) Remarkably, this impressive stature is a relatively recent development in human history, occurring faster than evolution typically allows.</p>
+          <p>(D) Genetic analysis proves that their height is purely determined by DNA, leaving environmental factors with absolutely no role to play.</p>
+          <p>(E) High consumption of dairy products, rich in calcium and protein, is often cited as a primary driver of this physical development.</p>
+
+          <div class="question-row" style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; margin-top: 20px;">
+            <div class="question"><div class="qtext">31.</div><select name="q31"><option value="">--</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option></select></div>
+            <div class="question"><div class="qtext">32.</div><select name="q32"><option value="">--</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option></select></div>
+            <div class="question"><div class="qtext">33.</div><select name="q33"><option value="">--</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option></select></div>
+            <div class="question"><div class="qtext">34.</div><select name="q34"><option value="">--</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option></select></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-section">
+        <h2>第五大題：閱讀測驗（35–46 題，每題2分）</h2>
+        
+        <div class="passage">
+          <h3>Passage 1</h3>
+          <p>In the evolving landscape of modern urban planning, few concepts have generated as much debate as the "15-Minute City." Originally proposed by scientist Carlos Moreno, the premise is deceptively simple: every urban resident should be able to access their essential daily needs—work, school, healthcare, groceries, and parks—within a short 15-minute walk or bike ride from their home. It serves as a rebellion against the century-old paradigm of zoning, which rigidly separated residential areas from business districts, forcing millions into a daily ritual of long commutes in private automobiles. The concept champions decentralization, aiming to transform cities from singular hubs into networks of self-sufficient neighborhoods.</p>
+          
+          <p>Proponents argue that this model is a crucial solution for climate change and public health crises. By reducing the dependency on cars, cities can drastically cut carbon emissions and noise pollution. The shift toward active mobility, such as walking and cycling, combats the sedentary lifestyle prevalent in modern society, thereby reducing rates of obesity and heart disease. Moreover, there is a social dividend; when people walk the streets, social interactions increase, weaving a tighter fabric of community trust. Economically, money tends to stay local, supporting small businesses rather than distant big-box retailers.</p>
+          
+          <p>However, the transition is fraught with complexity. Critics point out that without careful policy intervention, the concept leads to gentrification. As neighborhoods become more walkable and rich in amenities, property values inevitably soar. Without strict rent controls or social housing policies, the 15-Minute City risks becoming a luxury product for the wealthy. This dynamic pushes low-income workers—the very people who would benefit most from shorter commutes—further to the periphery. This creates a paradox: a city designed for accessibility could inadvertently become a fortress of exclusion.</p>
+          
+          <p>To understand the real-world impact, let us examine the hypothetical transformation of the district of "Veridia." Before 2020, Veridia was a typical commuter town: affordable but polluted, with zero walkability. After an aggressive five-year transformation project implementing the 15-Minute model, data shows a drastic shift. Carbon emissions have plummeted by 60%, and community engagement scores have tripled. However, the project had unintended consequences. Due to the district's newfound popularity, housing prices have doubled, forcing 30% of the original working-class residents to relocate. While the environment and lifestyle quality have peaked, the economic accessibility of the area has severely declined. Ultimately, the 15-Minute City is a tool; if implemented with equity, it can save cities, but if left to the free market, it may simply create green playgrounds for the elite.</p>
+        </div>
+
+        <div class="question">
+          <div class="qtext">
+            35. Based on the description of the district "Veridia" in the final paragraph, which of the following radar charts best represents the status of Veridia <em>after</em> its five-year transformation?
+            <br><span style="font-size: 0.9rem; color: #666;">(Note: The five axes are Environmental Quality, Housing Affordability, Social Connection, Car Dependency, and Cost of Living.)</span>
+          </div>
+          <div style="text-align: center; margin: 20px 0;">
+            <img src="35.png" alt="Radar Charts Options" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+          </div>
+          <div class="options">
+            <label><input type="radio" name="q35" value="A"> A. Chart (A)</label>
+            <label><input type="radio" name="q35" value="B"> B. Chart (B)</label>
+            <label><input type="radio" name="q35" value="C"> C. Chart (C)</label>
+            <label><input type="radio" name="q35" value="D"> D. Chart (D)</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">36. According to the passage, which of the following scenarios best illustrates the "paradox" mentioned in the third paragraph?</div>
+          <div class="options">
+            <label><input type="radio" name="q36" value="A"> A. A neighborhood builds new bike lanes and parks, making it so attractive that landlords raise rents, forcing the local nurses and janitors to move to distant suburbs.</label>
+            <label><input type="radio" name="q36" value="B"> B. A city government bans all private cars from the city center, causing massive protests from suburban commuters who feel their freedom is restricted.</label>
+            <label><input type="radio" name="q36" value="C"> C. A technology company invents a new electric vehicle that reduces emissions but requires expensive charging infrastructure that the city cannot afford.</label>
+            <label><input type="radio" name="q36" value="D"> D. A community successfully implements a 15-minute zone, but residents complain that the local grocery stores do not stock enough variety of international goods.</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">37. Which of the following arguments would the author most likely agree with regarding the implementation of the 15-Minute City?</div>
+          <div class="options">
+            <label><input type="radio" name="q37" value="A"> A. It is a dangerous infringement on personal liberty and should be abandoned in favor of traditional zoning laws.</label>
+            <label><input type="radio" name="q37" value="B"> B. It is the only viable solution for climate change and should be implemented immediately, regardless of the economic cost.</label>
+            <label><input type="radio" name="q37" value="C"> C. It is largely ineffective because the infrastructure in most modern cities is too dependent on cars to ever change.</label>
+            <label><input type="radio" name="q37" value="D"> D. It is a promising urban design strategy, but it requires strong policy intervention to ensure it doesn't exacerbate social inequality.</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">38. What is the author's tone throughout the passage?</div>
+          <div class="options">
+            <label><input type="radio" name="q38" value="A"> A. Enthusiastic and uncritical</label>
+            <label><input type="radio" name="q38" value="B"> B. Cynical and dismissive</label>
+            <label><input type="radio" name="q38" value="C"> C. Cautiously objective and analytical</label>
+            <label><input type="radio" name="q38" value="D"> D. Indifferent and detached</label>
+          </div>
+        </div>
+
+        <hr style="margin: 40px 0; border-top: 2px dashed #ccc;">
+
+        <div class="passage">
+          <h3>Passage 2</h3>
+          <p>Music is often described as a universal language, but for most of human history, it was a language without a written alphabet. In the early medieval period, music was entirely an oral tradition, passed down from master to student through repetition and memory. However, as the chants of the Catholic Church grew longer and more intricate, relying solely on memory became a risky gamble. A single lapse could break the chain of tradition. This necessity—the need to preserve the sacred melodies accurately—sparked one of the most significant technological innovations in art history: musical notation.</p>
+          
+          <p>The earliest solution, emerging around the 9th century, was the use of neumes. These were simple, squiggle-like markings placed above the lyrics to indicate the contour of the melody—whether the pitch should go up or down. However, neumes were merely mnemonic aids; they could remind a singer of a melody they already knew, but they could not teach a stranger a new song. They were, in essence, a reminder, not a recording. The true revolution arrived in the 11th century with a monk named Guido d'Arezzo. Frustrated by the years it took his choirboys to memorize chants, Guido introduced a system of lines and spaces. By placing notes on horizontal lines, he gave pitch a precise vertical coordinate. Suddenly, music had "spatial" logic. This invention of sight-singing transformed music from a memory exercise into a literacy skill, allowing complex melodies to be transported across distances without distortion.</p>
+          
+          <p>Yet, a puzzle remained: rhythm. Guido’s system told you what to sing, but not how long to sing it. As music evolved from unison chanting to polyphony (multiple independent voices singing together) in the 13th and 14th centuries, synchronization became critical. If four singers were to perform different melodies simultaneously, they needed a way to stay together. This led to the development of mensural notation, where the shape of the note—diamonds, squares, or rectangles—indicated its precise duration. For the first time, time itself was measured and graphicized on the page.</p>
+          
+          <p>By the Baroque and Classical eras, the invention of the printing press standardized these symbols into the five-line staff and round noteheads we recognize today. Composers began adding dynamics and tempo markings, seeking to control not just the notes, but the emotional expression of the performance. However, the evolution did not stop there. In the 20th century, avant-garde composers like John Cage felt that traditional notation was too rigid to capture their experimental sounds. They returned to graphic scores—using abstract shapes and spirals—arguing that standard notation limits the musician's creativity. Thus, the history of notation has come full circle: from vague squiggles to precise grids, and finally, back to abstract art.</p>
+        </div>
+
+        <div class="question">
+          <div class="qtext">39. Which of the following best describes the primary catalyst for the evolution of musical notation described in the passage?</div>
+          <div class="options">
+            <label><input type="radio" name="q39" value="A"> A. The desire of composers to legally copyright their work and prevent plagiarism.</label>
+            <label><input type="radio" name="q39" value="B"> B. The invention of the printing press, which required a standardized visual language for mass production.</label>
+            <label><input type="radio" name="q39" value="C"> C. The increasing complexity of musical forms and the limitation of human memory to preserve them accurately.</label>
+            <label><input type="radio" name="q39" value="D"> D. The religious belief that writing down music was the only way to make it holy and acceptable to God.</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">40. Which analogy best explains the difference between the "Neumes" (Paragraph 2) and "Guido's Staff" (Paragraph 3)?</div>
+          <div class="options">
+            <label><input type="radio" name="q40" value="A"> A. Neumes are like a GPS navigation system, while Guido’s Staff is like a paper map.</label>
+            <label><input type="radio" name="q40" value="B"> B. Neumes are like a rough sketch of a building, while Guido’s Staff is like a precise architectural blueprint.</label>
+            <label><input type="radio" name="q40" value="C"> C. Neumes are like a typed email, while Guido’s Staff is like a handwritten letter.</label>
+            <label><input type="radio" name="q40" value="D"> D. Neumes are like a photograph of a landscape, while Guido’s Staff is like a painting of the same view.</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">
+            41. The following four images represent different stages of musical notation mentioned in the passage. Please arrange them in the correct chronological order.
+          </div>
+          <div style="text-align: center; margin: 20px 0;">
+            <img src="41.png" alt="Notation History" style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+          </div>
+          <div class="options">
+            <label><input type="radio" name="q41" value="A"> A. III &rarr; I &rarr; IV &rarr; II</label>
+            <label><input type="radio" name="q41" value="B"> B. IV &rarr; III &rarr; I &rarr; II</label>
+            <label><input type="radio" name="q41" value="C"> C. I &rarr; IV &rarr; III &rarr; II</label>
+            <label><input type="radio" name="q41" value="D"> D. III &rarr; IV &rarr; I &rarr; II</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">42. Why does the author mention 20th-century avant-garde composers in the final paragraph?</div>
+          <div class="options">
+            <label><input type="radio" name="q42" value="A"> A. To illustrate that traditional notation systems eventually became insufficient for expressing new experimental artistic concepts.</label>
+            <label><input type="radio" name="q42" value="B"> B. To criticize modern musicians for being too lazy to learn the strict rules of classical notation.</label>
+            <label><input type="radio" name="q42" value="C"> C. To prove that the invention of the printing press ultimately destroyed the creativity of musical composition.</label>
+            <label><input type="radio" name="q42" value="D"> D. To suggest that modern music is inferior to classical music because it lacks a standardized writing system.</label>
+          </div>
+        </div>
+
+        <hr style="margin: 40px 0; border-top: 2px dashed #ccc;">
+
+        <div class="passage">
+          <h3>Passage 3</h3>
+          <p>For modern diners, the tomato is a culinary staple, indispensable in everything from Italian pasta sauces to American ketchup. It is hard to imagine a salad or a sandwich without its bright red slices. However, if you were a wealthy aristocrat in 18th-century Europe, you would likely have viewed this fruit with absolute terror. For over 200 years, the tomato was widely nicknamed the "Poison Apple," and eating one was considered a game of Russian roulette.</p>
+          
+          <p>The roots of this fear were partly botanical. When the tomato was brought to Europe from the Americas in the 16th century, botanists correctly identified it as a member of the Solanaceae, or Nightshade family. Since this family includes the deadly belladonna—a plant known for its toxic berries used in witchcraft and poisons—Europeans assumed by association that the tomato must also be lethal. While the leaves and stems of the tomato plant do contain small amounts of toxic alkaloids, the fruit itself is harmless. Yet, guilt by association kept the tomato off the dinner table and relegated it to a purely decorative plant in gardens for generations.</p>
+          
+          <p>But the most compelling reason for the "poison" myth was not botanical, but chemical—and it had everything to do with class distinction. In the 1700s, wealthy Europeans dined on pewter plates, which were made of a metal alloy containing a high concentration of lead. Tomatoes are highly acidic. When a sliced tomato was placed on a pewter plate, the acid would chemically react with the metal, leaching lead out of the plate and into the food. The diner would then consume the lead-laced tomato and die of lead poisoning. The aristocrats, observing these deaths, blamed the fruit. Meanwhile, the poor, who ate off simple wooden trenchers that did not react with acid, consumed tomatoes without any ill effects. Ironically, the tomato became a "poor man's food" simply because the rich were poisoning themselves with their own expensive tableware.</p>
+          
+          <p>The rehabilitation of the tomato's reputation was a slow process. It wasn't until the 19th century, with the rise of pizza in Naples and the migration of Italians to America, that the tomato began its global conquest. But the most dramatic turning point came in 1820, when Colonel Robert Gibbon Johnson supposedly stood on the steps of the courthouse in Salem, New Jersey, and ate a basket of tomatoes in front of a horrified crowd. When he didn't drop dead, the spell was broken. Today, the tomato’s dark history serves as a reminder that what we consider "common knowledge" is often shaped by unseen factors, and sometimes, the plate matters more than the food.</p>
+        </div>
+
+        <div class="question">
+          <div class="qtext">43. Which of the following best explains why the tomato was historically dangerous to the wealthy but safe for the poor?</div>
+          <div class="options">
+            <label><input type="radio" name="q43" value="A"> A. The wealthy ate a specific variety of tomato that was genetically toxic, while the poor ate a safer wild variety.</label>
+            <label><input type="radio" name="q43" value="B"> B. The poor cooked the tomatoes thoroughly to remove toxins, whereas the wealthy preferred to eat them raw and poisonous.</label>
+            <label><input type="radio" name="q43" value="C"> C. The wealthy used tableware that released toxic substances when in contact with the tomato's acidity, a problem the poor did not face.</label>
+            <label><input type="radio" name="q43" value="D"> D. The poor had developed a natural immunity to nightshade alkaloids over generations, which the delicate constitutions of the wealthy lacked.</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">44. What role did the classification of the tomato as a "Nightshade" play in its unpopularity (Paragraph 2)?</div>
+          <div class="options">
+            <label><input type="radio" name="q44" value="A"> A. It caused people to make a logical error of "guilt by association," assuming it was dangerous because its relatives were poisonous.</label>
+            <label><input type="radio" name="q44" value="B"> B. It led farmers to plant tomatoes only at night, making them rare and too expensive for the general public to afford.</label>
+            <label><input type="radio" name="q44" value="C"> C. It convinced religious leaders that the fruit was evil, leading to a church-sanctioned ban on its cultivation.</label>
+            <label><input type="radio" name="q44" value="D"> D. It proved that the fruit contained high levels of deadly belladonna toxins, confirming the fears of botanists.</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">45. Based on the passage, the story of the "Poison Apple" is fundamentally a lesson about:</div>
+          <div class="options">
+            <label><input type="radio" name="q45" value="A"> A. The dangers of introducing invasive species from the Americas to the European ecosystem.</label>
+            <label><input type="radio" name="q45" value="B"> B. How technological advancements in agriculture can eliminate toxic traits in plants.</label>
+            <label><input type="radio" name="q45" value="C"> C. The importance of separating botanical classification from culinary application.</label>
+            <label><input type="radio" name="q45" value="D"> D. How hidden variables (like chemical reactions) can lead to false cause-and-effect conclusions.</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">46. Which of the following modern scenarios is most analogous to the "Pewter Plate" misunderstanding described in the third paragraph?</div>
+          <div class="options">
+            <label><input type="radio" name="q46" value="A"> A. People assume a new phone is waterproof because the previous model was, so they accidentally ruin it by swimming with it.</label>
+            <label><input type="radio" name="q46" value="B"> B. People get sick after eating sushi at a restaurant and blame the raw fish, not realizing the chef didn't wash his hands.</label>
+            <label><input type="radio" name="q46" value="C"> C. People stop buying a certain brand of car because a celebrity spokesperson was involved in a scandal.</label>
+            <label><input type="radio" name="q46" value="D"> D. People believe that carrying a lucky charm helped them win the lottery, ignoring the statistical probability.</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-section">
+        <h2>第六大題：混合題（占 10 分）</h2>
+        
+        <div class="passage">
+          <h3 style="border-bottom: none; margin-bottom: 10px; color: #000;">Section A: Event Proposal</h3>
+          
+          <div style="border: 1px solid #000; padding: 20px; background: #fff; margin-bottom: 30px;">
+            <p style="margin-top: 0;"><strong>Project Title:</strong> The "Silent Beats" Initiative – Revitalizing City Nightlife<br>
+            <strong>Date:</strong> August 15, 2026<br>
+            <strong>Location:</strong> Central Riverside Park</p>
+
+            <p><strong>The Problem:</strong><br>
+            Our city faces a growing dilemma. While the youth demand a vibrant nightlife and cultural events, local residents constantly complain about late-night noise pollution. This conflict has led to the cancellation of three major music festivals this year alone.</p>
+
+            <p><strong>The Solution:</strong><br>
+            We introduce "Silent Beats," a revolutionary outdoor dance event. Instead of using massive loudspeakers that shake the windows of nearby apartments, music is broadcast via a radio transmitter directly to wireless headphones worn by the participants.</p>
+
+            <p><strong>How It Works:</strong>
+            <ul style="margin-top: 5px; padding-left: 20px;">
+              <li><strong>Rental System:</strong> Attendees rent a pair of high-fidelity LED headphones upon entry.</li>
+              <li><strong>Multi-Channel Choice:</strong> The headphones feature a switch allowing users to toggle between three different channels (Blue: Electronic / Red: Hip Hop / Green: Retro Pop). The LED lights on the headphones change color to match the channel, showing others what you are listening to.</li>
+              <li><strong>Zero Noise Pollution:</strong> To an observer without headphones, the park remains peaceful, with only the sound of shuffling feet and occasional singing.</li>
+            </ul>
+            </p>
+
+            <p style="margin-bottom: 0;"><strong>Goal:</strong><br>
+            This initiative aims to prove that entertainment does not have to be intrusive. We hope to persuade the city council to lift the curfew on outdoor gatherings if this trial run succeeds without generating noise reports.</p>
+          </div>
+
+          <h3 style="border-bottom: none; margin-bottom: 10px; color: #000;">Section B: Social Media Comments #SilentBeats</h3>
+          
+          <div style="background: #fff; padding: 20px; border: 1px solid #000;">
+            
+            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #ccc;">
+              <strong>@DanceMachine99:</strong><br>
+              I was skeptical at first, but it was surreal! Being able to control the volume is a game-changer. Usually, my ears ring for days after a concert, but this time I left feeling great. Plus, seeing half the crowd dancing to a slow song while the other half was jumping to techno was hilarious.
+            </div>
+            
+            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #ccc;">
+              <strong>@GrumpyCat_NoMore:</strong><br>
+              As someone who lives right across the street from the park, I was ready to call the police at 10 PM. But... silence. I actually sat on my balcony and watched the light show from the headphones. Finally, a party that respects the neighborhood!
+            </div>
+            
+            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #ccc;">
+              <strong>@Audiophile_X:</strong><br>
+              The concept is cool, but the tech needs work. My headphones lost signal whenever I walked near the food trucks. Also, the hygiene issue worries me. The ear pads felt a bit damp when I got them. I hope they sanitize them thoroughly between uses.
+            </div>
+            
+            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #ccc;">
+              <strong>@SocialButterfly:</strong><br>
+              It’s a bit awkward when you take the headphones off to talk to someone and realize everyone is singing out of tune in total silence. It kills the vibe a bit. I miss the feeling of the bass hitting your chest from real speakers. It felt a bit isolated.
+            </div>
+
+            <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed #ccc;">
+              <strong>@EcoWarrior_24:</strong><br>
+              I appreciate the reduction in noise pollution, but what about the physical waste? Hundreds of headphones mean hundreds of lithium batteries. Are these rechargeable? How is the event organizer planning to handle the e-waste if they break? We need a sustainability report.
+            </div>
+
+            <div style="margin-bottom: 0;">
+              <strong>@SquadGoals_Jen:</strong><br>
+              This is the perfect solution for my friend group! We usually fight about which club to go to because half of us like Hip Hop and the others love EDM. Here, we could all dance together in the same circle but listen to different channels. No more splitting up!
+            </div>
+
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">47-48 下列短文為針對上述活動的總結報告。請從 <strong>Section A</strong> 文章中找出最適當的單詞 (word) 填入下列句子空格中，並視句型結構需要做適當的 <strong>字形變化 (word form changes)</strong>，使語意完整、語法正確。每格限填一個單詞。(填充，各 2 分，共 4 分)</div>
+          <div style="background: #fff; padding: 20px; border: 1px solid #000; line-height: 2.2; font-family: 'Times New Roman', serif; font-size: 1.1rem;">
+            The "Silent Beats" project was launched to address the conflict between nightlife entertainment and residential peace. The organizers hoped that by replacing loudspeakers with headphones, they could reduce the number of <input type="text" class="mixed-input" name="q47" placeholder="Q47" style="border: none; border-bottom: 1px solid #000; text-align: center; width: 120px; font-size: 1rem;"> from neighbors regarding noise. Ultimately, the goal was to act as a <input type="text" class="mixed-input" name="q48" placeholder="Q48" style="border: none; border-bottom: 1px solid #000; text-align: center; width: 120px; font-size: 1rem;"> to convince local authorities to relax restrictions on outdoor events.
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">49. Based on the reading, which of the following statements are true? (多選題，4分，依倒扣公式計算)</div>
+          <div class="options">
+            <label><input type="checkbox" name="q49" value="A"> (A) The headphones allow users to listen to three different genres of music simultaneously.</label>
+            <label><input type="checkbox" name="q49" value="B"> (B) @GrumpyCat_NoMore called the police because the crowd was singing too loudly.</label>
+            <label><input type="checkbox" name="q49" value="C"> (C) The LED lights on the headphones serve a function beyond just decoration.</label>
+            <label><input type="checkbox" name="q49" value="D"> (D) @Audiophile_X experienced technical connectivity issues during the event.</label>
+            <label><input type="checkbox" name="q49" value="E"> (E) @EcoWarrior_24 praises the event for being completely free of any environmental concerns.</label>
+            <label><input type="checkbox" name="q49" value="F"> (F) @SquadGoals_Jen found the multi-channel feature helpful for keeping her friend group together.</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <div class="qtext">50. According to <strong>@Audiophile_X</strong>, what specific action does he hope the organizers perform to address his health concern? (簡答，2分，請從文中擷取關鍵字詞作答，限 5 字以內)</div>
+          <input type="text" class="q50-input" id="q50_answer" placeholder="Type your answer here..." style="width: 100%; margin-top: 10px; padding: 8px; border: 1px solid #000;">
+          <div id="q50-feedback" class="correct-answer" style="display:none; color:#16a34a; margin-top:10px;">
+            <strong>參考答案：</strong> sanitize them (thoroughly)
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz-section">
+        <h2>第七大題：非選題（占 28 分）</h2>
+        
+        <h3>Part 1: 中譯英（8分）</h3>
+        <p class="hint">說明：依題號將以下中文句子譯成正確、通順、達意的英文。每題 4 分。</p>
+
+        <div class="question">
+          <div class="qtext">1. 隨著智慧型手機的普及，許多青少年變得過度依賴網路，導致他們逐漸與現實社會脫節。</div>
+          <textarea id="trans1" class="trans-input" placeholder="請輸入翻譯..."></textarea>
+        </div>
+        <div class="question">
+          <div class="qtext">2. 為了避免這個問題惡化，專家建議年輕人應培養多元的興趣，並限制每日的螢幕使用時間。</div>
+          <textarea id="trans2" class="trans-input" placeholder="請輸入翻譯..."></textarea>
+        </div>
+        <button type="button" class="primary" id="gradeTransBtn" style="background-color: #059669; font-size:1rem; padding:10px; margin-top:10px;">AI 批改中譯英 (使用Groq)</button>
+        
+        <div id="transResult" class="ai-grading-result" style="background-color: #f0f9ff; border-color: #bae6fd;">
+          <h3>中譯英 AI 批改結果</h3>
+          <div class="score-grid">
+             <div class="score-item"><span class="score-label">第1題得分</span><span class="score-value" id="scoreTrans1">--</span></div>
+             <div class="score-item"><span class="score-label">第2題得分</span><span class="score-value" id="scoreTrans2">--</span></div>
+             <div class="score-item"><span class="score-label">總分</span><span class="score-value" id="scoreTransTotal">--</span></div>
+          </div>
+          <div class="translation-result-box">
+            <div class="feedback-title">第 1 題評語與建議：</div>
+            <div id="feedbackTrans1" class="trans-feedback"></div>
+          </div>
+          <div class="translation-result-box">
+             <div class="feedback-title">第 2 題評語與建議：</div>
+             <div id="feedbackTrans2" class="trans-feedback"></div>
+          </div>
+        </div>
+
+        <hr style="margin: 30px 0;">
+
+        <h3>Part 2: 英文作文（20分）</h3>
+        <p class="hint">說明：依據提示寫一篇約 120 字以上的短文。</p>
+        
+        <div class="passage">
+          <p><strong>題目說明：</strong></p>
+          <p>請觀察下方圖片，該圖呈現了現代都市街頭的景象。請根據圖片內容寫一篇120字以上的英文作文，文分兩段。第一段描述圖片中的內容，包括號誌燈號顯示行人為紅燈而車道為綠燈、斑馬線上行人的行為表現、車輛駕駛的反應以及路旁的警告標誌；第二段請以「被迫緊急煞車的駕駛」或「現場執勤的交通警察」之立場，闡述你對此現象的看法與感受，並提出呼籲。</p>
+          <div style="text-align: center; margin: 20px 0;">
+            <img src="essay.png.png" alt="Smartphone Zombies" style="max-width: 50%; height: auto; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+          </div>
+        </div>
+
+        <div class="essay-container">
+          <textarea id="essayInput" placeholder="請在此輸入您的作文 (Please type your essay here)..."></textarea>
+          <div class="word-count">字數統計: <span id="wordCountDisplay">0</span></div>
+          <button type="button" class="primary" id="gradeEssayBtn" style="background-color: #7c3aed; width:100%; font-size:1.1rem; padding:12px;">AI 批改作文 (使用Groq)</button>
+        </div>
+
+        <div id="aiResult" class="ai-grading-result">
+          <h3>AI 批改結果</h3>
+          
+          <details class="correction-dropdown" open>
+            <summary>
+              <span>👀 查看文章詳細訂正 (紅字=錯誤, 藍字=建議)</span>
+              <div class="legend-box">
+                <span class="legend-dot" style="background:#dc2626;"></span>錯誤
+                <span class="legend-dot" style="background:#2563eb; margin-left:8px;"></span>優化
+              </div>
+            </summary>
+            <div id="markedEssayDisplay" class="essay-correction-content">
+              </div>
+          </details>
+
+          <div class="score-grid">
+            <div class="score-item"><span class="score-label">內容 (Content)</span><span class="score-value" id="scoreContent">--</span></div>
+            <div class="score-item"><span class="score-label">組織 (Org)</span><span class="score-value" id="scoreOrg">--</span></div>
+            <div class="score-item"><span class="score-label">文法 (Grammar)</span><span class="score-value" id="scoreGrammar">--</span></div>
+            <div class="score-item"><span class="score-label">字彙 (Vocab)</span><span class="score-value" id="scoreVocab">--</span></div>
+          </div>
+          
+          <div class="total-score">總分：<span id="scoreTotal">--</span> / 20</div>
+          
+          <div id="feedbackContainer" style="margin-top: 20px;"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:30px; display:flex; gap:15px; justify-content:center;">
+        <button type="button" class="primary" id="submitBtn" style="font-size:1.1rem; padding:12px 24px;">提交與顯示計分</button>
+        <button type="reset" class="secondary" id="resetFormBtn">重做</button>
+      </div>
+      <div style="margin-top:15px; text-align:center;">
+        <label style="display:inline-block;">
+          <input type="checkbox" id="showAnswersCheckbox"> 顯示正確答案
+        </label>
+        <p style="font-size:0.9rem; color:#555; margin-top:4px;">請按下提交後再點擊 "顯示正確答案" (含簡答題參考答案)</p>
+      </div>
+      <div id="results"></div>
+
+    </form>
+  </div>
+
+  <script>
+    // ===== 全局變數儲存分數狀態 (Global Score State) =====
+    let currentScores = {
+      vocab: 0,
+      cloze: 0,
+      context: 0,
+      struct: 0,
+      reading: 0,
+      mixed: 0,
+      trans: 0,
+      essay: 0
+    };
+
+    function updateScoreboardDisplay() {
+      document.getElementById('dash-vocab').textContent = currentScores.vocab;
+      document.getElementById('dash-cloze').textContent = currentScores.cloze;
+      document.getElementById('dash-context').textContent = currentScores.context;
+      document.getElementById('dash-struct').textContent = currentScores.struct;
+      document.getElementById('dash-reading').textContent = currentScores.reading;
+      document.getElementById('dash-mixed').textContent = currentScores.mixed.toFixed(1).replace('.0', '');
+      
+      const transTxt = (currentScores.trans === 0 && document.getElementById('scoreTransTotal').textContent === '--') ? '--' : currentScores.trans;
+      document.getElementById('dash-trans').textContent = transTxt;
+      
+      const essayTxt = (currentScores.essay === 0 && document.getElementById('scoreTotal').textContent === '--') ? '--' : currentScores.essay;
+      document.getElementById('dash-essay').textContent = essayTxt;
+      
+      const total = currentScores.vocab + currentScores.cloze + currentScores.context + currentScores.struct + 
+                    currentScores.reading + currentScores.mixed + currentScores.trans + currentScores.essay;
+      
+      document.getElementById('dash-total').textContent = total.toFixed(1).replace('.0', '');
+      
+      // 更新分數時自動展開計分面板
+      autoOpenDashboard();
+    }
+
+    // ===== 1. 計分板收合控制邏輯 =====
+    document.getElementById('dashboard-toggle-btn').addEventListener('click', function() {
+      const dashboard = document.getElementById('score-dashboard');
+      const btn = this;
+      
+      dashboard.classList.toggle('collapsed');
+      
+      if (dashboard.classList.contains('collapsed')) {
+        btn.textContent = '⬇ 顯示成績';
+      } else {
+        btn.textContent = '⬆ 收起面板';
+      }
+    });
+    
+    function autoOpenDashboard() {
+        const dashboard = document.getElementById('score-dashboard');
+        const btn = document.getElementById('dashboard-toggle-btn');
+        if(dashboard.classList.contains('collapsed')) {
+            dashboard.classList.remove('collapsed');
+            btn.textContent = '⬆ 收起面板';
+        }
+    }
+
+    // ===== 2. 計時器收合控制邏輯 =====
+    document.getElementById('timer-toggle-btn').addEventListener('click', function() {
+      const timerBar = document.getElementById('timer-bar');
+      const btn = this;
+      
+      timerBar.classList.toggle('collapsed');
+      
+      if (timerBar.classList.contains('collapsed')) {
+        btn.textContent = '⏱ 顯示計時器';
+      } else {
+        btn.textContent = '⬆ 收起設定';
+      }
+    });
+
+    // ===== Timer Logic =====
+    let countdownInterval = null;
+    let remainingSeconds = 0;
+    let locked = false;
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      const mm = m.toString().padStart(2,'0');
+      const ss = s.toString().padStart(2,'0');
+      return `${mm}:${ss}`;
+    }
+    function updateTimerLabel(prefix) {
+      const timer = document.getElementById('timer');
+      timer.textContent = `${prefix} ${formatTime(remainingSeconds)}`;
+    }
+    function lockExam() {
+      locked = true;
+      document.querySelectorAll('#examForm input, #examForm select, #examForm textarea').forEach(el => el.disabled = true);
+      document.getElementById('lockedBanner').style.display = 'block';
+    }
+    function startCountdown() {
+      if (locked) return;
+      const minutes = parseInt(document.getElementById('countdownTime').value, 10);
+      if (!minutes || !confirm(`倒數將從 ${minutes} 分鐘開始。是否開始？`)) return;
+      remainingSeconds = minutes * 60;
+      updateTimerLabel('剩餘');
+      document.getElementById('pauseBtn').disabled = false;
+      document.getElementById('resetTimerBtn').disabled = false;
+      document.getElementById('startBtn').disabled = true;
+      document.getElementById('resumeBtn').disabled = true;
+      if (countdownInterval) clearInterval(countdownInterval);
+      countdownInterval = setInterval(() => {
+        remainingSeconds -= 1;
+        if (remainingSeconds <= 0) {
+          remainingSeconds = 0;
+          updateTimerLabel('剩餘');
+          clearInterval(countdownInterval);
+          lockExam();
+          alert('時間到！');
+        } else {
+          updateTimerLabel('剩餘');
+        }
+      }, 1000);
+    }
+    function pauseCountdown() {
+      if (!countdownInterval) return;
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+      document.getElementById('pauseBtn').disabled = true;
+      document.getElementById('resumeBtn').disabled = false;
+    }
+    function resumeCountdown() {
+      if (countdownInterval || locked) return;
+      document.getElementById('pauseBtn').disabled = false;
+      document.getElementById('resumeBtn').disabled = true;
+      countdownInterval = setInterval(() => {
+        remainingSeconds -= 1;
+        if (remainingSeconds <= 0) {
+          remainingSeconds = 0;
+          clearInterval(countdownInterval);
+          lockExam();
+        } else {
+          updateTimerLabel('剩餘');
+        }
+      }, 1000);
+    }
+    function resetCountdown() {
+      if (countdownInterval) clearInterval(countdownInterval);
+      countdownInterval = null;
+      remainingSeconds = 0;
+      document.getElementById('timer').textContent = '尚未開始';
+      document.getElementById('pauseBtn').disabled = true;
+      document.getElementById('resumeBtn').disabled = true;
+      document.getElementById('resetTimerBtn').disabled = true;
+      document.getElementById('startBtn').disabled = false;
+    }
+    document.getElementById('startBtn').addEventListener('click', startCountdown);
+    document.getElementById('pauseBtn').addEventListener('click', pauseCountdown);
+    document.getElementById('resumeBtn').addEventListener('click', resumeCountdown);
+    document.getElementById('resetTimerBtn').addEventListener('click', resetCountdown);
+
+    // ===== Answer Key & Grading Logic =====
+    const ANSWERS_MCQ = {
+      q1:'C', q2:'D', q3:'B', q4:'A', q5:'C', q6:'D', q7:'B', q8:'A', q9:'D', q10:'B',
+      q11:'C', q12:'D', q13:'A', q14:'D', q15:'B', 
+      q16:'C', q17:'A', q18:'B', q19:'C', q20:'D',
+      q21:'C', q22:'G', q23:'J', q24:'I', q25:'B', 
+      q26:'D', q27:'E', q28:'A', q29:'H', q30:'F',
+      q31:'C', q32:'E', q33:'A', q34:'B',
+      q35:'B', q36:'A', q37:'D', q38:'C', q39:'C', q40:'B', q41:'D', q42:'A', q43:'C', q44:'A', q45:'D', q46:'B'
+    };
+    
+    // 混合題客觀題答案
+    const ANSWERS_MIXED = {
+        q47: 'complaints',
+        q48: 'persuasion',
+        // 多選題正確答案
+        q49_correct: ['C', 'D', 'F'], 
+        
+        // 簡答題關鍵字
+        q50_keywords: ["sanitize"] 
+    };
+
+    function grade() {
+      const res = document.getElementById('results');
+      res.innerHTML = ''; // 清空先前的答題回饋
+      
+      // 1. 重置各部分分數
+      currentScores.vocab = 0;
+      currentScores.cloze = 0;
+      currentScores.context = 0;
+      currentScores.struct = 0;
+      currentScores.reading = 0;
+      currentScores.mixed = 0;
+      
+      // ==========================================
+      // Part 1. 改選擇題 (1-46)
+      // ==========================================
+      for (let i = 1; i <= 46; i++) {
+        const name = 'q' + i;
+        const correct = ANSWERS_MCQ[name];
+        const checked = document.querySelector(`input[name="${name}"]:checked`) || document.querySelector(`select[name="${name}"]`);
+        let val = checked ? checked.value : '';
+        if (checked && checked.tagName === 'SELECT' && checked.value === '') val = ''; 
+        
+        // 配分邏輯
+        let point = 1;
+        if(i >= 31 && i <= 34) point = 2; // 篇章結構
+        if(i >= 35 && i <= 46) point = 2; // 閱讀測驗
+        
+        if (!val) {
+            res.innerHTML += `<p class="wrong">第 ${i} 題未作答｜正確：<span class="correct-answer" style="display:inline">${correct}</span></p>`;
+        } else if (val === correct) { 
+            // 累加分數
+            if(i<=10) currentScores.vocab += point;
+            else if(i<=20) currentScores.cloze += point;
+            else if(i<=30) currentScores.context += point;
+            else if(i<=34) currentScores.struct += point;
+            else currentScores.reading += point;
+
+            res.innerHTML += `<p class="correct">第 ${i} 題答對 ✔</p>`; 
+        } else {
+            res.innerHTML += `<p class="wrong">第 ${i} 題答錯 ✘ (你選 ${val})｜正確：<span class="correct-answer" style="display:inline">${correct}</span></p>`;
+        }
+      }
+
+      // ==========================================
+      // Part 2. 改混合題 (47-50)
+      // ==========================================
+      
+      // --- Q47 (2分) 填充 ---
+      const q47Input = document.querySelector('input[name="q47"]');
+      const q47Val = q47Input ? q47Input.value.trim().toLowerCase() : '';
+      if(q47Val === ANSWERS_MIXED.q47) {
+          currentScores.mixed += 2;
+          res.innerHTML += `<p class="correct">第 47 題答對 ✔</p>`;
+      } else {
+          res.innerHTML += `<p class="wrong">第 47 題答錯 (你填: ${q47Val || '未作答'})｜正確：complaints</p>`;
+      }
+      
+      // --- Q48 (2分) 填充 ---
+      const q48Input = document.querySelector('input[name="q48"]');
+      const q48Val = q48Input ? q48Input.value.trim().toLowerCase() : '';
+      if(q48Val === ANSWERS_MIXED.q48) {
+          currentScores.mixed += 2;
+          res.innerHTML += `<p class="correct">第 48 題答對 ✔</p>`;
+      } else {
+          res.innerHTML += `<p class="wrong">第 48 題答錯 (你填: ${q48Val || '未作答'})｜正確：persuasion</p>`;
+      }
+      
+      // --- Q49 (4分) 多選倒扣 ---
+      const allOptions49 = ['A', 'B', 'C', 'D', 'E', 'F'];
+      const correctSet49 = new Set(ANSWERS_MIXED.q49_correct); // ['C', 'D', 'F']
+      const userCheckedEls49 = document.querySelectorAll('input[name="q49"]:checked');
+      const userSet49 = new Set(Array.from(userCheckedEls49).map(el => el.value));
+      
+      let k = 0; // 錯誤數
+      allOptions49.forEach(opt => {
+         const isCorrect = correctSet49.has(opt);
+         const isUserChecked = userSet49.has(opt);
+         if (isCorrect !== isUserChecked) {
+             k++;
+         }
+      }); 
+
+      // 計算 Q49 得分
+      const n = allOptions49.length; // 6
+      let q49Score = 0;
+      if (k === 0) {
+          q49Score = 4; 
+      } else {
+          let rawScore = ((n - 2 * k) / n) * 4;
+          q49Score = Math.max(0, rawScore); 
+      }
+      currentScores.mixed += q49Score; 
+
+      if (q49Score === 4) {
+          res.innerHTML += `<p class="correct">第 49 題答對 (得 4 分) ✔</p>`;
+      } else {
+          res.innerHTML += `<p class="wrong">第 49 題未全對 (得 ${q49Score.toFixed(1)} 分)｜正確選項：C, D, F</p>`;
+      }
+
+      // --- Q50 (2分) 簡答題 ---
+      const q50Input = document.getElementById('q50_answer');
+      const q50Val = q50Input ? q50Input.value.trim().toLowerCase() : '';
+      let q50Correct = false;
+
+      if (q50Val.includes("sanitize")) {
+        q50Correct = true;
+      }
+
+      if (q50Correct) {
+        currentScores.mixed += 2;
+        res.innerHTML += `<p class="correct">第 50 題答對 ✔ <span style="color:#666; font-size:0.9em;">(關鍵字: sanitize)</span></p>`;
+      } else {
+        res.innerHTML += `<p class="wrong">第 50 題答錯 (你填: ${q50Val || '未作答'})<br>參考答案：sanitize them thoroughly (文中關鍵字為 sanitize)</p>`;
+      }
+
+      // ==========================================
+      // 3. 更新上方懸浮計分板 (不插入額外HTML)
+      // ==========================================
+      updateScoreboardDisplay();
+      
+      // 自動捲動到第一題的結果
+      res.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    document.getElementById('submitBtn').addEventListener('click', grade);
+    
+    document.getElementById('resetFormBtn').addEventListener('click', () => {
+      document.getElementById('results').innerHTML = '';
+      document.getElementById('aiResult').style.display = 'none';
+      document.getElementById('transResult').style.display = 'none';
+      document.getElementById('wordCountDisplay').textContent = '0';
+      document.querySelectorAll('textarea').forEach(el => el.value = '');
+      document.querySelectorAll('input[type="text"]').forEach(el => el.value = '');
+      document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+      document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
+      document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+      
+      // 重置分數
+      currentScores = { vocab: 0, cloze: 0, context: 0, struct: 0, reading: 0, mixed: 0, trans: 0, essay: 0 };
+      document.getElementById('scoreTransTotal').textContent = '--';
+      document.getElementById('scoreTotal').textContent = '--';
+      updateScoreboardDisplay();
+    });
+    
+    document.getElementById('showAnswersCheckbox').addEventListener('change', function() {
+      const show = this.checked;
+      document.querySelectorAll('.correct-answer').forEach(el => el.style.display = show ? 'inline' : 'none');
+      // 顯示混合題正確答案
+      if(show) {
+          document.querySelector('input[name="q47"]').value = ANSWERS_MIXED.q47 + ' (Ans)';
+          document.querySelector('input[name="q48"]').value = ANSWERS_MIXED.q48 + ' (Ans)';
+          document.getElementById('q50-feedback').style.display = 'block';
+      } else {
+           document.getElementById('q50-feedback').style.display = 'none';
+      }
+    });
+
+    // =============================================================
+    // ★★★ 設定 API KEY (使用原設定) ★★★
+    let API_KEY = "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"; 
+    // =============================================================
+
+    // ===== Translation AI Grading Logic =====
+    document.getElementById('gradeTransBtn').addEventListener('click', async function() {
+        const t1 = document.getElementById('trans1').value.trim();
+        const t2 = document.getElementById('trans2').value.trim();
+        const resultBox = document.getElementById('transResult');
+        const btn = this;
+
+        if(!t1 || !t2) {
+            alert("請完成兩題翻譯後再進行批改。");
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="ai-loading-anim">✨</span> AI 批改中...';
+        resultBox.style.display = 'none';
+
+        const prompt = `
+        You are a professional English teacher grading Taiwan's GSAT exam translations.
+        
+        Question 1 Source: 隨著智慧型手機的普及，許多青少年變得過度依賴網路，導致他們逐漸與現實社會脫節。
+        Student Answer 1: "${t1}"
+        
+        Question 2 Source: 為了避免這個問題惡化，專家建議年輕人應培養多元的興趣，並限制每日的螢幕使用時間。
+        Student Answer 2: "${t2}"
+
+        *** HALLUCINATION WARNING (READ CAREFULLY) ***
+        - **CHECK FIRST**: Look closely at the student's text. 
+        - If Student Answer 1 contains "the Internet" (case insensitive), DO NOT say they missed "the". 
+        - If Student Answer 1 contains "society" or "real society", DO NOT deduct points for missing "the" (society is generic).
+        - Only deduct points if the error actually exists in the string provided above.
+
+        *** SCORING RUBRIC ***
+        1. **Base Score**: Start with 4.0 for each question.
+        2. **Deductions**:
+           - **Grammar Errors**: -0.5 (e.g., wrong tense, wrong preposition, subject-verb agreement).
+           - **Key Vocabulary Errors**: -0.5 (e.g., using "worse" instead of "worsening" after preposition).
+           - **Spelling**: -0.5.
+        3. **Style**: Do NOT deduct for valid synonyms (e.g., "limit" vs "restrict" are both correct).
+
+        *** SPECIFIC TRAP CHECKS ***
+        [Question 1]
+        - **"the Internet"**: Standard English requires "the". 
+          - If student wrote "Internet" without "the" -> Deduct 0.5.
+          - If student wrote "the Internet" -> NO DEDUCTION.
+        
+        [Question 2]
+        - **"Prevent ... from ..."**: Must be followed by Noun/V-ing.
+          - ❌ "from worse" (Adj) -> WRONG. Deduct 0.5.
+          - ✅ "from worsening" / "from deteriorating" -> CORRECT.
+        - **"Experts suggest..."**:
+          - ❌ "Experts should suggest" (Meaning changed) -> Deduct 0.5.
+          - ✅ "Experts suggest" -> CORRECT.
+
+        Output format (JSON ONLY):
+        {
+            "q1_score": number (0-4),
+            "q1_feedback": "Specific feedback in Traditional Chinese. If the answer is correct, praise it.",
+            "q2_score": number (0-4),
+            "q2_feedback": "Specific feedback in Traditional Chinese. If the answer is correct, praise it.",
+            "total_score": number
+        }
+        `;
+
+        try {
+            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${API_KEY}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    messages: [
+                        { role: "system", content: "You are a helpful assistant that outputs strictly in JSON." },
+                        { role: "user", content: prompt }
+                    ],
+                    model: "llama-3.3-70b-versatile",
+                    temperature: 0.1, // Keep low to reduce hallucinations
+                    response_format: { type: "json_object" }
+                })
+            });
+
+            if (!response.ok) throw new Error("API Connection Failed");
+            const data = await response.json();
+            const resData = JSON.parse(data.choices[0].message.content);
+
+            document.getElementById('scoreTrans1').textContent = resData.q1_score;
+            document.getElementById('scoreTrans2').textContent = resData.q2_score;
+            document.getElementById('scoreTransTotal').textContent = resData.total_score;
+            document.getElementById('feedbackTrans1').textContent = resData.q1_feedback;
+            document.getElementById('feedbackTrans2').textContent = resData.q2_feedback;
+            
+            // 更新全局分數與看板
+            currentScores.trans = resData.total_score;
+            updateScoreboardDisplay();
+
+            resultBox.style.display = 'block';
+
+        } catch (e) {
+            console.error(e);
+            alert("批改失敗，請檢查網路或稍後再試。");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "AI 批改中譯英 (使用Groq)";
+        }
+    });
+
+
+    // ===== Essay AI Grading Logic =====
+    const essayInput = document.getElementById('essayInput');
+    const wordCountDisplay = document.getElementById('wordCountDisplay');
+
+    essayInput.addEventListener('input', function() {
+      const text = this.value.trim();
+      const words = text === '' ? 0 : text.split(/\s+/).length;
+      wordCountDisplay.textContent = words;
+      if (words < 120) wordCountDisplay.style.color = 'red';
+      else if (words < 250) wordCountDisplay.style.color = 'orange';
+      else wordCountDisplay.style.color = 'green';
+    });
+
+    document.getElementById('gradeEssayBtn').addEventListener('click', async function() {
+      const essayText = essayInput.value.trim();
+      const resultDiv = document.getElementById('aiResult');
+      const feedbackContainer = document.getElementById('feedbackContainer');
+      const btn = this;
+      const wordCount = essayText === '' ? 0 : essayText.split(/\s+/).length;
+
+      if (wordCount < 10) {
+        alert("作文字數太少，請至少寫幾個完整的句子。");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="ai-loading-anim">✨</span> 正在深入分析 (需要 10-20 秒，請耐心等候)...';
+      resultDiv.style.display = 'none';
+
+      const topic = `
+        題目：Smartphone Zombies at Intersection
+        背景：圖片顯示繁忙的十字路口，行人號誌為紅燈，車道號誌為綠燈。但一群行人低頭看手機過馬路，無視交通號誌，迫使擁有路權的車輛緊急煞車。路旁立有警告標誌 "Look Up / No Phubbing"。
+        要求：兩段式作文。
+        第一段：描述圖片內容（紅綠燈狀況、行人低頭行為、駕駛煞車反應、警告標誌）。
+        第二段：請以「被迫緊急煞車的駕駛」或「現場執勤的交通警察」之立場，闡述看法與呼籲。
+        `;
+
+      const systemPrompt = `
+        You are a STRICT and UNCOMPROMISING English Examination Grader for high school students in Taiwan (GSAT standard).
+        Your goal is NOT to encourage, but to accurately assess proficiency.      
+        *** CRITICAL SCORING RULES (MUST FOLLOW) ***
+        1. **Low Score Threshold**: If the essay has multiple basic grammar errors (e.g., subject-verb disagreement like 'It remind', wrong tense like 'I choose' for past events, Chinglish), the Grammar score MUST be between 0 and 3.5 (out of 5). DO NOT give 3.5 or higher for poor grammar.
+        2. **Word Count Penalty**: If the essay is significantly short (under 120 words) or lacks substance, the TOTAL SCORE must be capped at 12. (the maximum word count will be 550 words)
+        3. **Total Score Calculation**: Sum of 4 sub-scores (Content + Organization + Grammar + Vocab). Max 20.
+            - Average / Passable essay: 12-14 points.
+            - Poor essay with frequent errors: 8-11 points.
+            - Excellent essay: 16+ points.
+            - Outstanding essay with advanced vocab/structure: 18-20 points (minimum word count 350, strictly follow this rule when giving higher marks).
+        4. **The score can have a 0.5 or 1.0 point increment (e.g., 12.0, 12.5, 13.0, etc.) but no points such as 16.3 or 17.6.**
+        5. **For any essay that the word count is between 120 and 250 words, total score cannot exceed 15 points.**
+        6. **For essays that don't have too much mistakes (less than four grammar or vocabulary errors), deduct 0.5 points when a mistake is spotted.**
+        7. **If the essay is over 250 words and has good grammar (4 or fewer mistakes), you may reward up to 1 extra point for exceeding the word count requirement.**
+        8. **For essays that does not meet the two-paragraph structure requirement, deduct 1 point from the Organization score and the total point cannot exceed 10.**
+        9. **If the essay fails to address the prompt (e.g., missing one of the required elements), deduct 1 point from the Content score for 1 miss.**
+        10. **If the essay is completely off-topic, give a total score of 0 and provide feedback explaining the reason.**
+        11. **Carefully check for "Chinglish" issues (unnatural phrasing, direct translations from Chinese, etc.) and deduct points accordingly.**
+        12. **Be careful about the logic and coherence of the essay. If there are significant logic flaws, deduct points from Organization.**
+        13. **Carefully examines every sentence and if there are redundant or repetitive expressions, deduct points from Vocabulary.**
+        14. **Only for essays that are above 300 words can have a total score higher than 18 points.**
+        15. **Total review or feedback must be in Traditional Chinese (繁體中文) and must exceed 1000 words (as long and as detailed as possible).**
+        16. **If the essay content is unrelated to the given topic, the total score must be 0.**
+        17. **DO NOT GIVE POINTS THAT EXCEED 18 IF THE WORD COUNT IS BELOW 350. IF THE WORD COUNT IS BELOW 350, THE MAXIMUM SCORE IS 17.5.**
+        18. **Strictly obey ALL the above rules without exception. (especially the 17th one)**
+
+        *** TASK 1: DUAL-COLOR MARKING (CRITICAL) ***
+        Rewrite the student's essay EXACTLY, but insert tags for corrections and improvements.
+        
+        1. [RED ERRORS]: Mark grammar/spelling mistakes with \`[ERR: original :: correction]\`. When the usage of a vocabulary is grammarly and structurally correct but there's words that's more suitable to the scenario, do NOT mark it as an error, mark as optimization which will be mentioned below instead.
+            - Example: "He [ERR: go :: went] to school."
+            - Be as strict as possible. EVERY error MUST be marked.
+            - Strictly follow the rules above without any exceptions.
+        
+        2. [BLUE OPTIMIZATIONS] (MANDATORY): You MUST identify at least 3-5 opportunities to improve vocabulary or phrasing, EVEN IF the original is grammatically correct.
+            - Replace simple words (e.g., "good", "think", "make") with advanced alternatives (e.g., "beneficial", "perceive", "generate").
+            - Format: \`[OPT: original :: better_alternative]\`.
+            - Example: "I [OPT: think :: believe] that technology is [OPT: good :: beneficial]."
+            - However, for words that are already advanced or contextually appropriate, do NOT mark them.
+        
+        *** TASK 2: FEEDBACK (EXTREMELY VERBOSE) ***
+        You must provide VERY LONG feedback in Traditional Chinese (繁體中文).
+        - Please analyze based on the specific topic: "${topic}"
+        - **Check Content (Para 1)**: Did the student describe the RED pedestrian light / GREEN traffic light? Did they mention phubbing (looking at phones)? Did they describe the driver's reaction (braking)? Did they mention the warning sign?
+        - **Check Perspective (Para 2)**: Did the student clearly adopt the persona of a "Driver" or "Traffic Police"? (e.g., "As a driver sitting in my car...")
+        - Provide DETAILED feedback on Content, Organization, Grammar, and Vocabulary, citing specific examples from the essay.
+        - Each feedback section must be at least 300 words (in Traditional Chinese) long, with in-depth analysis and suggestions.
+        - Using phrases or idioms is totally fine, if the usage is correct, do not mark them as optimizations.
+        - When constructing feedback, do not use generic phrases like "文章的內容充實，有清晰的主題陳述" unless you provide specific examples from the essay to support such claims. BE AS SPECIFIC AS POSSIBLE.
+        - Strictly follow the rules above without any exceptions.
+        - When there are sufficient reasons to give extremely high marks, it is not necessary to give feedbacks such as "文章的詞彙選擇基本豐富，但仍需要進一步的優化和充實".
+        - For judging the usage of vocabulary, please refer to the Taiwan's criteria for high school English exams (GSAT standard). For higher scores, students must use words that are in level five or six.
+        - When constructing feedback, you can use examples from the student's essay to illustrate your points, but do NOT copy large chunks of text directly into the feedback. Instead, paraphrase or summarize the relevant parts. 
+
+        *** OUTPUT FORMAT (JSON ONLY) ***
+        {
+          "marked_essay_text": "Full text with [ERR:...] and [OPT:...] tags...",
+          "content": number (0-5),
+          "organization": number (0-5),
+          "grammar": number (0-5),
+          "vocab": number (0-5),
+          "total": number (0-20),
+          "feedback_general": "總評 (針對是否切題、字數、邏輯進行長篇分析)...",
+          "feedback_structure": "結構分析 (第一段是否描述圖片細節、第二段是否成功切換駕駛/警察視角)...",
+          "feedback_grammar": "文法與修辭深度解析...",
+          "feedback_vocab": "高分優化建議..."
+        }
+        
+        IMPORTANT: Rewrite the essay exactly. When inserting a tag, replace the original text with the tag. DO NOT leave the original text outside the tag. Example: '[ERR: cat :: dog]' is correct. 'cat [ERR: cat :: dog]' is WRONG (causes duplication).
+        `;
+
+      try {
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: `Topic: ${topic}\nWord Count: ${wordCount}\nStudent Essay:\n"${essayText}"` }
+            ],
+            model: "llama-3.3-70b-versatile",
+            temperature: 0.1, 
+            response_format: { type: "json_object" }
+          })
+        });
+
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+
+        const data = await response.json();
+        const rawText = data.choices[0].message.content;
+        const resultData = JSON.parse(rawText);
+
+        // Process Tags
+        let formattedEssay = resultData.marked_essay_text || "無法產生批改範例";
+        formattedEssay = formattedEssay.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        formattedEssay = formattedEssay.replace(/([a-zA-Z]+)\s*(\[(?:ERR|OPT):\s*\1\s*::)/gi, "$2");
+        formattedEssay = formattedEssay.replace(/\[ERR:\s*(.*?)\s*::\s*(.*?)\]/g, '<span class="mark-error" data-suggestion="$2">$1</span>');
+        formattedEssay = formattedEssay.replace(/\[OPT:\s*(.*?)\s*::\s*(.*?)\]/g, '<span class="mark-opt" data-suggestion="$2">$1</span>');
+        formattedEssay = formattedEssay.replace(/\n/g, '<br>');
+
+        document.getElementById('markedEssayDisplay').innerHTML = formattedEssay;
+        document.getElementById('scoreContent').textContent = resultData.content || 0;
+        document.getElementById('scoreOrg').textContent = resultData.organization || 0;
+        document.getElementById('scoreGrammar').textContent = resultData.grammar || 0;
+        document.getElementById('scoreVocab').textContent = resultData.vocab || 0;
+        document.getElementById('scoreTotal').textContent = resultData.total || 0;
+
+        feedbackContainer.innerHTML = `
+          <div class="feedback-box"><span class="feedback-title">總評與切題度分析</span><div class="feedback-content">${resultData.feedback_general}</div></div>
+          <div class="feedback-box"><span class="feedback-title">結構與邏輯分析</span><div class="feedback-content">${resultData.feedback_structure}</div></div>
+          <div class="feedback-box"><span class="feedback-title">文法糾錯與修辭解析</span><div class="feedback-content">${resultData.feedback_grammar}</div></div>
+          <div class="feedback-box"><span class="feedback-title">單字升級與高分建議</span><div class="feedback-content">${resultData.feedback_vocab}</div></div>
+        `;
+        
+        // 更新全局分數與看板
+        currentScores.essay = resultData.total;
+        updateScoreboardDisplay();
+
+        resultDiv.style.display = 'block';
+        resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      } catch (error) {
+        console.error("Grading Error:", error);
+        alert(`批改發生錯誤：\n${error.message}`);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "AI 批改作文 (使用Groq)";
+      }
+    });
+  </script>
+</body>
+</html>
